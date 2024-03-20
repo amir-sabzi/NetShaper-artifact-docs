@@ -1,0 +1,141 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Artifact Appendix Template for Usenix Security'24 AE
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\appendix
+\section{Artifact Appendix}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Abstract}
+In this paper, we present {\sys}, a system that mitigates network side channel leaks through traffic shaping. {\sys}'s traffic shaping offers differential privacy guarantees while configuring a trade-off between privacy assurances, bandwidth, and latency overheads. For evaluation, we implement {\sys} on four interconnected machines, where two of these machines serve as communicating parties, with the other two functioning as middleboxes. Furthermore, to expedite the evaluation of experiments involving multiple transmissions of traffic traces, we construct a traffic shaping simulator.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Artifact Check-list (Meta-information)}
+\label{subsec:artifact-checklist}
+\begin{itemize}
+  \setlength{\itemsep}{1pt}
+  \item \textbf{Algorithm:} Simulator implements our traffic shaping mechanism described in Section 3.
+  \item \textbf{Datasets:} We use two datasets, one for our video streaming service and another for our web service. Instructions for accessing these datasets can be found in Section A.3.
+  \item \textbf{Models:} We use TCN model and CNN model from the Beauty and the Burst paper. Both are included in the code repository.
+  \item \textbf{Security, privacy, and ethical concerns:} Both of our datasets are public and there is no security, privacy, or ethical concerns associated with using them.
+  \item \textbf{Metrics:} We report throughput as number of requests per second, latency in milliseconds, and accuracy of the classification. The relative bandwidth overhead is the number of dummy bytes transmitted normalized to the size of the unshaped traffic trace. For privacy, we report the privacy loss, $\varepsilon$, as defined in the framework of differential privacy (Equation 1).    
+  \item \textbf{Publicly available } Yes. The GitHub repository: \href{https://github.com/ubc-systopia/netshaper}{https://github.com/ubc-systopia/netshaper}
+  \item \textbf{Experiments:} This artifact reproduces the results of the following experiments: empirical privacy (Section 5.1), impact of privacy parameters (Section 5.2),  middlebox throughput and latency (Section 5.3), video streaming bandwidth and latency overhead (Section 5.4), web service bandwidth and latency overhead (Section 5.5), and comparison with related work (Section 5.6).  
+  \item \textbf{Data licenses:} The Creative Commons Attribution license.
+\end{itemize}
+
+\subsubsection{Traffic Shaping Simulator}
+\label{subsubsec:check-list-simulator}
+\begin{itemize}
+  \setlength{\itemsep}{1pt}
+  \item \textbf{Run-time environment:} Simulator requires \texttt{Python 3.10.6} and can be executed on arbitrary OS without root access. The list of required Python packages is available in our repository. 
+  \item \textbf{Hardware:} The simulator requires a machine that should have at least 8 CPU cores, 64 GB of RAM, and a GPU with 24 GB of memory.
+  \item \textbf{Outputs:} Simulator output is shaped traffic traces.
+  \item \textbf{How much disk space is required?} 100 GB of disk space.
+  \item \textbf{How much time is needed to complete experiments (approximately)?} The completion of all experiments typically takes around 72 hours.
+\end{itemize}
+
+
+
+\subsubsection{{\sys} Implementation}
+\label{subsubsec:check-list-testbed}
+\begin{itemize}
+  \setlength{\itemsep}{1pt}
+  \item \textbf{Compiler:} To compile our code, we use \texttt{gcc 11.4.0}.
+  \item \textbf{Run-time environment:} Our implementation is specific to Ubuntu 22.04. For video server, we use Nginx 1.23.4. For transport protocol we use Microsoft implementation of the QUIC protocol, MsQUIC 2.2.4. We use our modified version of wrk2, an HTTP benchmarking tool, to send requests asynchronously. 
+  The list of main software dependencies are provided in Git repository.
+  \item \textbf{Hardware:} Four machines interconnected in a linear topology. Each machine should have at least 8 CPU cores, 32 GB of RAM, and a 10 Gbps NIC.
+  \item \textbf{Run-time state:} The machines should be connected to a LAN, ensuring no interference from the public network or other network applications.
+  \item \textbf{Execution:} Running one tunnel end-point requires at least three cores. {\ushaper} and {\dshaper} should be pinned to their dedicated cores, and there should be at least one core to run the QUIC worker and kernel. 
+  \item \textbf{Output: } The output consists of pcap files containing traffic traces, log files of the web and video clients, and log files from the middleboxes. Subsequently, our scripts process these files to extract data specific to each experiment.
+  \item \textbf{How much disk space is required?} 100 GB of disk space per machine.
+  \item \textbf{How much time is needed to complete experiments?} About 12 hours.
+\end{itemize}
+
+
+
+\subsection{How to Access}
+\label{subsec:how-to-access}
+The code for both the traffic shaping simulator and our implementation of {\sys} can be found on our GitHub repository.
+First, clone the github repository.
+\begin{bashcode}
+  $ git clone --recursive-submodules https://github.com/ubc-systopia/netshaper.git
+  $ cd netshaper
+\end{bashcode}
+To download NetShaper's dataset, change the directory to dataset directory and run the following commands:
+\begin{bashcode}
+  $ cd dataset
+  $ wget https://zenodo.org/api/records/10783814/files-archive
+  $ tar -xf netshaper_dataset.tar.gz
+\end{bashcode}
+Please note that a dataset is essential for both simulator and testbed implementation. Further details are available in the \texttt{README.md}.
+
+\subsection{How to Set up}\label{subsec:setup}
+Here, we offer high-level steps for setting up both the simulator and our implementation.
+Additionally, each experiment is accompanied by dedicated setup instructions outlined in the corresponding section of the \texttt{README.md} file.
+\subsubsection{NetShaper Implementation}
+\label{subsubsec:setup-testbed}
+To set up the server and client, ensure that Docker is installed on the hosting machines, clone the \texttt{sys} repository onto both of them, download and place the dataset in the \texttt{/dataset} directory, and execute the \texttt{./setup} script for the server and the client.
+Our scripts will handle the remaining setup procedures.
+To configure the middleboxes, physical access to the machines is necessary to adjust the BIOS settings and initiate a reboot. In addition to Docker, ensure that \texttt{tcpdump} is installed on these machines to facilitate the collection of traffic traces. For more details, consult the experiments' \texttt{README.md} file.
+
+\subsubsection{Traffic Shaping Simulator}
+\label{subsubsec:setup-simulator}
+Setting up the simulator is comparatively straightforward compared to the testbed; you only need to install the necessary Python prerequisites.
+\begin{bashcode}
+ pip install -r <path-to-simulator>/requirements.txt
+\end{bashcode}
+
+
+
+
+
+\subsection{Experiment Workflow}\label{subsec:work-flow}
+Each experiment has its dedicated directory under the \texttt{/evaluation} directory of the {\sys} repository.
+To execute the experiment, run \texttt{./run.sh} with specific arguments as outlined in the experiment's \texttt{README.md} file.
+The parameters of the experiment controlled by a \texttt{json} file stored under \texttt{/config} directory of the experiment. 
+Note that these parameters are specific to each experiment, and their descriptions can be found in the experiment's \texttt{README.md} file. 
+The results of the experiments, including a \texttt{pickle file} and a plot, will be recorded in a subdirectory of the \texttt{/results} directory for the experiment, named as the experiment title along with the date and time of the execution.
+Certain experiments depend on a set of helper scripts for execution, data collection, and result plotting.
+All these scripts can be found in the \texttt{/helper} directory within the experiment.
+\subsubsection{Major Claims}\label{subsubsec:major-claims}
+\begin{enumerate}[label=\textbf{(C\arabic*):}, leftmargin=1.2cm]  % Custom enumeration style starting from 1
+  \item {\sys} defeats state-of-the-art classifier with privacy loss ($\varepsilon$) as large as 200. This is proven by the experiment (\textit{E1}) described in Section 5.1 whose results are illustrated in Figure 5.
+  \item When shaping is disabled, the peak system throughput and the maximum concurrent clients sustained by the {\sys} middlebox align with those of a direct connection. The {\sys} middleboxes add a small latency overhead ,typically less than 10ms, when compared to a direct connection. This is proven by  experiment (\textit{E2}) described in Section 5.3. The results of these experiments are illustrated in Figure 7a and Figure 7b respectively.
+  \item When shaping is enabled, the latency of video segments in a video streaming application increases linearly with the DP interval. For all configurations in Section 5.4, {\sys} latency is less than $5s$. The bandwidth overhead of {\sys} decreases as the DP intervals become larger. Experiments (\textit{E3}) and (\textit{E4}) reproduce results illustrated in Figure 8a and Figure 8b.  
+  \item When shaping is enabled, the latency of webpage requests in a web service increases linearly with the DP interval. The minimum bandwidth overhead occurs at $T=50ms$. Experiments (\textit{E5}) and (\textit{E6}) prove the results showed in Figure 8c and Figure 8d. 
+  \item In both video streaming and web service applications, {\sys} incurs three order of magnitude lower bandwidth overhead than constant-rate traffic shaping. The bandwidth overhead of {\sys} decreases as the number of concurrent flows increases. For video streaming and web service applications, {\sys} requires 11
+  flows and more than 40 flows, respectively to achieve lower
+  overhead Pacer. 
+  Experiment (\textit{E7}) described in Section 5.6 proves this, and the results are illustrated in Figure 9a and Figure 9b.
+\end{enumerate}
+
+\subsubsection{Experiments}\label{subsubsec:experiments}
+In this section, we provide a short description of each experiment. For more details on the experiment steps, preparation, execution, and results, please consult the dedicated \texttt{README.md} file of each experiment.
+\begin{enumerate}[label=\textbf{(E\arabic*):}, leftmargin=1.2cm]
+  \item (Empirical Privacy)[5 human-minutes + 72 compute-hours]: In this experiment, we evaluate the accuracy of state-of-the-art classifiers under the deployment of {\sys} traffic shaping. The runtime depends on GPU architecture, and we used NVIDIA Tesla V100 to train the models.
+   
+  \item (Middlebox Throughput)[30 human-minutes + 4 compute-hours]: In this experiment, we measure the maximum throughput that {\sys} middleboxes can sustain, and the latency overhead imposed by {\sys} middleboxes.
+  \item (Video Streaming Latency Overhead)[30 human-minutes + 4 compute-hours]: This exper\texttt{}iment evaluates the latency of video streaming application with {\sys} traffic shaping.
+  \item (Video Streaming Bandwidth Overhead)[5 human-minutes + 3 compute-hours]: Measuring the bandwidth overhead of the video streaming application with {\sys} traffic shaping.
+  \item (Web Service Latency Overhead)[30 human-minutes + 2 compute-hours]: In this experiment, we evaluate the latency of web service application. 
+  \item (Web Service Bandwidth Overhead)[5 human-minutes + 1 compute-hours]: This experiment measures the bandwidth overhead of web service with {\sys} traffic shaping.
+  \item (Comparison with Related Work)[5 human-minutes + 4 compute-hours]: In this experiment, we compare bandwidth overhead of {\sys} with Pacer and Constant-rate traffic shaping for both video streaming and web service applications.
+  \item (Impact of Privacy Parameters)[5 human-minutes + 1 computer-minutes] In this experiment, we evaluate the effect of the sensitivity ($\qsens$), noise ($\sigma_\dpintvl$), and number of DP queues ($\varnumupdates$) on privacy loss ($\varepsilon$).
+\end{enumerate}
+
+
+
+
+
+
+\subsection{Version}
+%%%%%%%%%%%%%%%%%%%%
+% Obligatory.
+% Do not change/remove.
+%%%%%%%%%%%%%%%%%%%%
+Based on the LaTeX template for Artifact Evaluation V20231005. Submission,
+reviewing and badging methodology followed for the evaluation of this artifact
+can be found at \url{https://secartifacts.github.io/usenixsec2024/}.
